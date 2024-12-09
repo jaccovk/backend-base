@@ -1,4 +1,8 @@
-const getGlobal = require('../functions/getGlobal')
+const { getGlobal } = require('../functions/getGlobal')
+const { getSubmission } = require('../functions/getSubmission')
+const {convert} = require("html-to-text")
+const inlineCss = require("inline-css")
+const { parseTemplate } = require("./template");
 
 module.exports = async (event) => {
   /**
@@ -26,20 +30,51 @@ module.exports = async (event) => {
    * Try to email the user
    */
   try {
-    const {email, name} = event.result
+    const {email, name, mailTemplate} = event.result
     if (!email) {
       console.error("Email is not set")
       return
+    } else if (!mailTemplate) {
+      console.error("Mail template is not set")
+      return
     }
 
+    const { subject, html } = mailTemplate
+    const url = process.env.DOMAIN_NAME
+    const variables = {
+      event: event,
+      result: event.result,
+      submission: getSubmission({ strapi, event }),
+      global: getGlobal({ strapi, event }),
+      name: name,
+      email: email,
+      // TODO
+    }
+
+    const template = parseTemplate(html, variables)
+
+    // email the user
     const result = await strapi.plugins.email.services.email.send({
       to: name ? name + " <" + email + ">" : email,
       from: emailFrom,
-      subject: 'The Strapi Email plugin worked successfully!',
-      html: 'Hello world!',
+      subject: subject,
+      html: await inlineCss(template, { url }),
+    })
+    // TODO : save email in database
+    console.log("result >>>>", result)
+
+    // email the admin
+    const resultAdmin = await strapi.plugins.email.services.email.send({
+      to: emailFrom,
+      from: emailFrom,
+      subject: "Nieuwe inzending",
+      html: await inlineCss(
+        "<h1>Bekijk hier de verstuurde mail met de nieuwe inzending</h1>" + template,
+        { url }
+      ),
     })
 
-    console.log("result >>>>", result)
+    console.log("resultAdmin >>>>", resultAdmin)
   } catch (error) {
     console.error(error)
   }

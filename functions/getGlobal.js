@@ -1,9 +1,8 @@
 const getGlobal = async (strapi, event) => {
-  return strapi.service("api::global.global").findOne(
-    event.result.id, {
-      populate: ["*"],
-    }
-  )
+  return strapi.documents("api::global.global").findOne({
+      documentId: event.result.documentId,
+      populate: "*"
+    })
 }
 
 module.exports = {

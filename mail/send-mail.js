@@ -4,6 +4,9 @@ const {convert} = require("html-to-text")
 const inlineCss = require("inline-css")
 const { parseTemplate } = require("./template");
 
+// TODO: https://docs.strapi.io/dev-docs/backend-customization/services
+//   ==> Example of a custom email service (using Nodemailer)
+
 module.exports = async (event) => {
   /**
    * Check if the environment is production
@@ -30,7 +33,8 @@ module.exports = async (event) => {
    * Try to email the user
    */
   try {
-    const {email, name, mailTemplate} = event.result
+    const submission = await getSubmission({ strapi, event })
+    const { email, name, mailTemplate } = submission
     if (!email) {
       console.error("Email is not set")
       return
@@ -44,8 +48,8 @@ module.exports = async (event) => {
     const variables = {
       event: event,
       result: event.result,
-      submission: getSubmission({ strapi, event }),
-      global: getGlobal({ strapi, event }),
+      submission: submission,
+      global: await getGlobal({ strapi, event }),
       name: name,
       email: email,
       // TODO

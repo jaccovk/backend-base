@@ -1,7 +1,8 @@
 const getSubmission = async ({ strapi, event }) => {
-  return strapi.service("api::submission.submission").findOne(
-    event.result.documentId, {
-      populate: "*",
+  return strapi.documents("api::submission.submission").findOne(
+    {
+      documentId: event.result.documentId,
+      populate: "*"
     }
   )
 }

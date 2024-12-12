@@ -44,7 +44,7 @@ module.exports = async (event) => {
     }
 
     const { subject, html } = mailTemplate
-    const url = process.env.DOMAIN_NAME
+    const url = process.env.HOST_NAME
     const variables = {
       event: event,
       result: event.result,

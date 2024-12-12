@@ -1,4 +1,4 @@
-const getGlobal = async (strapi, event) => {
+const getGlobal = async ({ strapi, event }) => {
   return strapi.documents("api::global.global").findOne({
       documentId: event.result.documentId,
       populate: "*"

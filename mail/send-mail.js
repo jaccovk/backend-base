@@ -56,7 +56,6 @@ module.exports = async (event) => {
     }
 
     const template = parseTemplate(html, variables)
-    console.info("sending email to", email)
 
     // email the user
     const result = await strapi.plugins.email.services.email.send({

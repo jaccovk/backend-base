@@ -59,7 +59,8 @@ module.exports = async (event) => {
 
     // email the user
     const result = await strapi.plugins.email.services.email.send({
-      to: name ? name + " <" + email + ">" : email,
+      to: mailTemplate.customEmailFrom
+      //to: name ? name + " <" + email + ">" : email,
       from: emailFrom,
       subject: subject,
       html: await inlineCss(template, { url }),
@@ -68,17 +69,17 @@ module.exports = async (event) => {
     console.log("result >>>>", result)
 
     // email the admin
-    const resultAdmin = await strapi.plugins.email.services.email.send({
-      to: emailFrom,
-      from: emailFrom,
-      subject: "Nieuwe inzending",
-      html: await inlineCss(
-        "<h1>Bekijk hier de verstuurde mail met de nieuwe inzending</h1>" + template,
-        { url }
-      ),
-    })
+    // const resultAdmin = await strapi.plugins.email.services.email.send({
+//      to: emailFrom,
+//      from: emailFrom,
+//      subject: "Nieuwe inzending",
+//      html: await inlineCss(
+//        "<h1>Bekijk hier de verstuurde mail met de nieuwe inzending</h1>" + template,
+//        { url }
+//      ),
+//    })
 
-    console.log("resultAdmin >>>>", resultAdmin)
+//    console.log("resultAdmin >>>>", resultAdmin)
   } catch (error) {
     console.error(error)
   }

@@ -59,7 +59,7 @@ module.exports = async (event) => {
 
     // email the user
     const result = await strapi.plugins.email.services.email.send({
-      to: mailTemplate.customEmailFrom
+      to: mailTemplate.customEmailFrom,
       //to: name ? name + " <" + email + ">" : email,
       from: emailFrom,
       subject: subject,

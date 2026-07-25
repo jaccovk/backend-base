@@ -1,5 +1,5 @@
 Add me to a project:
 
 ```bash
-git clone git@github.com:jaccovk/backend-base.git backend-base
+git clone git@github.com:jaccovk/base.git base
 ```

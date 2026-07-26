@@ -7,7 +7,29 @@ const { parseTemplate } = require("./template");
 // TODO: https://docs.strapi.io/dev-docs/backend-customization/services
 //   ==> Example of a custom email service (using Nodemailer)
 
+/**
+ * Persist the outcome of the mail send attempt on the submission itself,
+ * so it's visible in the Strapi admin without needing server log access.
+ */
+const updateMailStatus = async ({ documentId, status, error }) => {
+  if (!documentId) return
+  try {
+    await strapi.documents("api::submission.submission").update({
+      documentId,
+      data: {
+        mailStatus: status,
+        mailError: error ? String(error).slice(0, 1000) : null,
+        mailSentAt: status === "sent" ? new Date() : null,
+      },
+    })
+  } catch (updateError) {
+    console.error("Failed to update submission mailStatus:", updateError)
+  }
+}
+
 module.exports = async (event) => {
+  const documentId = event.result?.documentId
+
   /**
    * Check if the environment is production
    * @type {boolean}
@@ -26,6 +48,7 @@ module.exports = async (event) => {
   const emailFrom = process.env.MAIL_DEFAULT_FROM
   if (!emailFrom) {
     console.error("MAIL_DEFAULT_FROM is not set")
+    await updateMailStatus({ documentId, status: "failed", error: "MAIL_DEFAULT_FROM is not set" })
     return
   }
 
@@ -37,9 +60,11 @@ module.exports = async (event) => {
     const { email, name, mailTemplate } = submission
     if (!email) {
       console.error("Email is not set")
+      await updateMailStatus({ documentId, status: "failed", error: "Email is not set on submission" })
       return
     } else if (!mailTemplate) {
       console.error("Mail template is not set")
+      await updateMailStatus({ documentId, status: "failed", error: "Mail template is not set on submission" })
       return
     }
 
@@ -65,8 +90,9 @@ module.exports = async (event) => {
       subject: subject,
       html: await inlineCss(template, { url }),
     })
-    // TODO : save email in database
     console.log("result >>>>", result)
+
+    await updateMailStatus({ documentId, status: "sent" })
 
     // email the admin
     // const resultAdmin = await strapi.plugins.email.services.email.send({
@@ -82,5 +108,6 @@ module.exports = async (event) => {
 //    console.log("resultAdmin >>>>", resultAdmin)
   } catch (error) {
     console.error(error)
+    await updateMailStatus({ documentId, status: "failed", error: error?.message || String(error) })
   }
 }
